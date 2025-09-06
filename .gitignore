@@ -1,0 +1,12 @@
+# Directories to ignore
+.credentials.json
+/root/.claude/.credentials.json
+ide/
+projects/
+shell-snapshots/
+statsig/
+todos/
+evaluate_report/*
+plugins/
+brandstorm/
+settings.json
