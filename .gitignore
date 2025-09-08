@@ -9,5 +9,5 @@ todos/
 evaluate_report/*
 data/*
 plugins/
-brainstorm/
+brainstorm/*
 settings.json
