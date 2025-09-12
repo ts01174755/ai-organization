@@ -1,117 +1,75 @@
-# Agent 狀態機命令
-
-## 概述
-
-將 Claude Code 執行模型轉換為有限狀態機，主程序和 agents 是具有明確權限的獨立狀態。
-
-## 核心概念：可執行邊界
-
-MAIN 狀態**無法寫入可執行檔案**：
-- ❌ 不能寫：`*.py`、`*.js`、`*.sh`、配置檔
-- ✅ 可以寫：`*.md`、`*.txt`、文檔
-
-這強制所有執行任務必須委派給 agents。
+# Agent State Machine
 
 ## 快速開始
 
 ```bash
-# 啟動
-/agent-state-machine --session start --mode orchestrator --path /root/.claude/fsm/session1
+# 啟動狀態機（預設模式）
+/agent-state-machine
 
-# 工作（系統自動處理狀態轉換）
-User: "寫個 Python 函數"
-[MAIN → FULLSTACK_ENGINEER]  # MAIN 無法寫 *.py
-[FULLSTACK_ENGINEER → MAIN]  # 任務完成
-
-# 結束
+# 結束狀態機
 /agent-state-machine --session end
 ```
 
-## 命令語法
+就這麼簡單！系統會自動處理所有狀態轉換。
+
+## 這是什麼？
+
+Agent State Machine 是一個讓 Claude Code 更有組織的執行模式：
+- **MAIN 狀態**：只能讀取、分析和寫文檔
+- **Agent 狀態**：執行專項任務
+
+當你執行專項任務時，系統會自動切換到適合的 Agent。
+
+## 使用範例
 
 ```bash
-/agent-state-machine --session [start/end] --mode [模式] --path [目錄路徑]
-```
+# 啟動
+User: /agent-state-machine
 
-| 參數 | 選項 | 說明 |
-|------|------|------|
-| `--session` | `start`、`end` | 啟動或結束會話 |
-| `--mode` | `orchestrator`、`interactive`、`response` | 轉換模式 |
-| `--path` | 目錄路徑 | 工作空間位置 |
+# 正常對話
+User: "寫個 Python 爬蟲"
+[MAIN → juvenile-prototype-integrator]  # 自動切換
+# Agent 寫程式碼...
+[juvenile-prototype-integrator → MAIN]  # 完成返回
 
-### 模式
+User: "執行測試"
+[MAIN → consolidated-fullstack-data-engineer]
+# Agent 執行測試...
+[consolidated-fullstack-data-engineer → MAIN]
 
-- **Orchestrator**（已實現）：`MAIN → Agent → MAIN`
-- **Interactive**（計劃中）：`MAIN → Agent_A → Agent_B → MAIN`
-- **Response**（計劃中）：`Queue → Agent → Queue`
-
-## 運作流程
-
-1. **初始化**：載入 agents、創建目錄、初始化 `state.jsonl`
-2. **模式匹配**：檢查輸入是否匹配 agent descriptions
-3. **狀態轉換**：記錄到 `state.jsonl`，顯示 `[A → B]`
-4. **執行**：MAIN 只能協調，agents 執行任務
-
-## 實際範例
-
-```bash
-User: /agent-state-machine --session start --path /root/.claude/fsm --mode orchestrator
-[State Machine Initialized]
-
-User: "Hello World 的由來是什麼？寫個 hello_world.py 並執行"
-
-# MAIN 可以回答問題
-關於 "Hello, World!" 的文化起源...
-
-# 但無法寫 *.py，必須委派
-[MAIN → juvenile-prototype-integrator]
-# Agent 創建並執行 hello_world.py
-[juvenile-prototype-integrator → MAIN]
-
+# 結束
 User: /agent-state-machine --session end
 ```
 
-## 優點
+## 進階選項（選用）
 
-1. **強制委派** - MAIN 物理上無法寫執行檔
-2. **審計軌跡** - 所有轉換記錄在 `state.jsonl`
-3. **Token 效率** - 執行上下文隔離在 agents
-4. **確定性行為** - 模式匹配而非概率決策
+```bash
+# 指定工作目錄
+/agent-state-machine --path /my/workspace
 
-## 目錄結構
-
-```
-[path]/
-├── main/           # MAIN 工作空間
-├── [agent-name]/   # Agent 工作空間
-└── state.jsonl     # 狀態歷史
+# 完整參數
+/agent-state-machine --session start --mode orchestrator --path /my/workspace
 ```
 
-## 狀態歷史
+### 參數說明
 
-```jsonl
-{"type": "session_init", "state": "MAIN", "permissions":{...}, "parameters": {...}}
-{"type": "transition", "state": "DATABASE_ARCHITECT", "permissions":{...},, "trigger": "database", "previous": "MAIN"}
-{"type": "transition", "state": "MAIN", "permissions":{...},, "trigger": "completed", "previous": "DATABASE_ARCHITECT"}
-```
+| 參數 | 預設值 | 說明 |
+|------|--------|------|
+| `--session` | `start` | `start` 啟動 / `end` 結束 |
+| `--mode` | `orchestrator` | 執行模式（目前只支援 orchestrator） |
+| `--path` | 自動生成時間戳目錄 | 工作空間路徑 |
 
-## 權限系統
+## 為什麼要用？
 
-每個狀態有明確權限：
-- `can_write` / `cannot_write` - 檔案寫入權限
-- `can_execute` / `cannot_execute` - 執行權限
+1. **更安全**：MAIN 不能直接執行程式碼
+2. **更清楚**：每個狀態轉換都有記錄
+3. **更專業**：專門的 Agent 處理專門的任務
 
-## 常見問題
+## 注意事項
 
-**Q: 為什麼沒有委派？**
-A: 檢查輸入是否匹配 agent descriptions
+- 狀態機啟動後，所有操作都會遵循狀態規則
+- MAIN 狀態不能寫程式檔案（*.py, *.js 等）
+- 需要寫程式時會自動切換到適合的 Agent
+- 使用 `--session end` 結束狀態機模式
 
-**Q: 如何查看當前狀態？**
-A: 查看 `state.jsonl` 最新條目或回應中的 `[State: X]`
-
-**Q: 可以讓 MAIN 寫程式碼嗎？**
-A: 不行，這是設計核心原則
-
----
-
-*詳細規範：`/root/.claude/commands/agent-state-machine.md`*
+就這樣，開始使用吧！

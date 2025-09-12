@@ -6,6 +6,7 @@ Automatically extracts and generates agent list from /root/.claude/agents/ direc
 
 import re
 import yaml
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -142,9 +143,15 @@ def main():
     
     print(f"\n✅ Found {len(agents)} agents")
     
-    # Create output directory in data folder
-    output_dir = Path("/root/.claude/data")
-    output_dir.mkdir(exist_ok=True)  # Create data directory if it doesn't exist
+    # Determine output directory from command line argument or use default
+    if len(sys.argv) > 1:
+        output_dir = Path(sys.argv[1])
+    else:
+        output_dir = Path("/root/.claude/data")
+    
+    # Create output directory if it doesn't exist
+    output_dir.mkdir(parents=True, exist_ok=True)
+    print(f"📁 Output directory: {output_dir}")
     
     # Generate markdown summary with full descriptions
     markdown_content = generate_markdown_summary(agents)
