@@ -1,0 +1,15 @@
+# Directories to ignore
+ide/
+plugins/
+projects/
+shell-snapshots/
+statsig/
+todos/
+.credentials.json
+# /root/.claude/.credentials.json
+# settings.json
+
+# 使用者的個人設定檔
+evaluate_report/*
+data/*
+brainstorm/*
