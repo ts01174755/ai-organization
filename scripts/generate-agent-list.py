@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Agent List Generator
-Automatically extracts and generates agent list from /root/.claude/agents/ directory
+Automatically extracts and generates agent list from ~/.claude/agents/ directory
 """
 
 import re
@@ -64,8 +64,12 @@ def extract_agent_info_from_md(file_path):
 
 def scan_agents_directory():
     """Scan the agents directory for all agent definitions"""
-    agents_dir = Path("/root/.claude/agents")
-    
+    # Use dynamic path based on user's home directory
+    home_dir = Path.home()
+    agents_dir = home_dir / ".claude" / "agents"
+
+    print(f"🔍 Scanning {agents_dir} directory...")
+
     if not agents_dir.exists():
         print(f"Error: Agents directory not found at {agents_dir}")
         return []
@@ -134,7 +138,7 @@ def generate_simple_list(agents):
 
 def main():
     """Main function to generate agent lists"""
-    print("🔍 Scanning /root/.claude/agents/ directory...")
+    # This print will be handled by scan_agents_directory function
     agents = scan_agents_directory()
     
     if not agents:
@@ -147,7 +151,9 @@ def main():
     if len(sys.argv) > 1:
         output_dir = Path(sys.argv[1])
     else:
-        output_dir = Path("/root/.claude/data")
+        # Use dynamic path based on user's home directory
+        home_dir = Path.home()
+        output_dir = home_dir / ".claude" / "data"
     
     # Create output directory if it doesn't exist
     output_dir.mkdir(parents=True, exist_ok=True)

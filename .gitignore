@@ -7,9 +7,18 @@ statsig/
 todos/
 .credentials.json
 # /root/.claude/.credentials.json
-# settings.json
+
+# 似乎是 claude code 系統的暫存檔
+file-history/
+history.jsonl
+settings.json
+
+# 似乎是 vscode 的暫存檔
+.vscode/
 
 # 使用者的個人設定檔
 evaluate_report/*
 data/*
 brainstorm/*
+.asm/*
+.DS_Store
